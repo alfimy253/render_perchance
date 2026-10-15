@@ -1,0 +1,18 @@
+# Keep the build context (and image) small; dependencies are installed inside the image.
+node_modules
+npm-debug.log*
+*.log
+.git
+.gitignore
+.vercel
+.vercelignore
+vercel.json
+.env
+.env.*
+!.env.example
+test
+scripts/_*
+*.md
+Dockerfile
+.dockerignore
+render.yaml

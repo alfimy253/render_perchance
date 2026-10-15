@@ -1,0 +1,32 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# One Docker web service that serves the frontend and the /generator API and runs Playwright/Chromium.
+# Step-by-step guide and plan advice: DEPLOY_RENDER.md
+services:
+  - type: web
+    name: perchance-image-generator
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+
+    # Compute plan IDs: free (0.1 CPU / 512 MB), 0.5c-512mb ($7/mo), 1c-2g ($25/mo).
+    # Measured (see DEPLOY_RENDER.md): the app runs on "free", but Perchance's anti-bot check
+    # did not finish on it (timed out on 0.1 CPU; ran out of memory on 512 MB).
+    # Real generation needs at least 1c-2g, or keep "free" and set BROWSER_WS_ENDPOINT.
+    plan: free
+
+    # Closest region to the Philippines. A service's region can't be changed after it is created.
+    region: singapore
+
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    # Lets in-flight generations finish during redeploys (the app waits up to SHUTDOWN_TIMEOUT_MS = 280 s).
+    maxShutdownDelaySeconds: 300
+
+    envVars:
+      # Protects /generator. Render generates a random value. Copy it from the service's
+      # Environment page and enter it in the web page's 🔑 field, or send it as X-API-Key.
+      - key: API_KEY
+        generateValue: true
+      # Optional, add in the dashboard when needed (see DEPLOY_RENDER.md):
+      #   PROXY_SERVER, PROXY_USERNAME, PROXY_PASSWORD   residential proxy for the browser
+      #   BROWSER_WS_ENDPOINT                            remote browser (offloads Chromium)
+      #   QUEUE_TIMEOUT_MS                               how long extra requests wait for the single slot

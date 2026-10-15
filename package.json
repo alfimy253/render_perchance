@@ -1,0 +1,26 @@
+{
+  "name": "perchance-image-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stateless Express app (Vercel-ready) that drives the Perchance AI Text-to-Image generator with Playwright and always returns exactly 4 images.",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch src/index.js",
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "browsers:install": "playwright-core install chromium",
+    "test": "node --test test/*.test.js",
+    "test:mock-e2e": "node scripts/mock-e2e.js",
+    "smoke:live": "node --env-file-if-exists=.env scripts/live-smoke.js",
+    "sync:types": "node --env-file-if-exists=.env scripts/sync-art-styles.js",
+    "demo:mock": "node scripts/demo-mock-server.js"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "153.0.0",
+    "express": "^5.1.0",
+    "playwright-core": "1.63.0"
+  }
+}

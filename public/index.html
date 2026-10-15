@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>AI Image Generator · Perchance × Playwright</title>
+  <meta name="description" content="Type a prompt, pick a Perchance art style and get 4 AI images. Powered by Playwright automating perchance.org." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%8C%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="mockBanner" class="banner" hidden>
+    <strong>Demo mode:</strong> the browser automation is real, but Perchance's image API is mocked on this server
+    (its anti-bot check blocks this sandbox's IP). Deploy to Vercel for real images.
+  </div>
+
+  <header class="site-header">
+    <h1><span aria-hidden="true">🌌</span> AI Image Generator <span aria-hidden="true">🪄</span></h1>
+    <p class="tagline">Perchance's text-to-image generator, automated with Playwright. Every run returns <strong>4 images</strong>.</p>
+  </header>
+
+  <main>
+    <form id="genForm" class="panel" novalidate>
+      <div class="field">
+        <label for="prompt">📝 Description</label>
+        <textarea id="prompt" name="prompt" rows="4" maxlength="2000" required
+          placeholder="a cozy cabin in a snowy pine forest at dusk, warm light in the windows"></textarea>
+        <div class="field-foot">
+          <span id="promptError" class="field-error" role="alert" hidden>Please describe the image you want.</span>
+          <span class="counter"><span id="promptCount">0</span>/2000</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="field compact">
+          <label for="type">🎨 Art Style</label>
+          <select id="type" name="type" disabled>
+            <option>Loading…</option>
+          </select>
+        </div>
+        <div class="field compact">
+          <label for="count">🔢 How many?</label>
+          <select id="count" name="count" disabled title="This app always generates exactly 4 images">
+            <option selected>4</option>
+          </select>
+        </div>
+        <div id="apiKeyField" class="field compact" hidden>
+          <label for="apiKey">🔑 API key</label>
+          <input id="apiKey" name="apiKey" type="password" autocomplete="off" placeholder="required by this server" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn" class="btn-primary" type="submit" disabled>
+          <span class="btn-label">✨ generate</span>
+        </button>
+        <span class="shortcut">Ctrl / ⌘ + Enter</span>
+      </div>
+    </form>
+
+    <section id="status" class="status" aria-live="polite" hidden>
+      <span class="spinner" aria-hidden="true"></span>
+      <span id="statusText">Generating…</span>
+      <span id="elapsed" class="elapsed">0.0s</span>
+    </section>
+
+    <section id="errorBox" class="error-box" role="alert" hidden>
+      <div class="error-title"><span id="errorCode"></span></div>
+      <p id="errorMessage"></p>
+      <p id="errorHint" class="error-hint"></p>
+    </section>
+
+    <section id="resultsSection" class="results-section" hidden>
+      <div class="results-head">
+        <h2>Results</h2>
+        <div class="results-meta" id="resultsMeta"></div>
+        <button id="downloadAll" class="btn-ghost" type="button">⬇ Download all</button>
+      </div>
+      <div id="grid" class="grid"></div>
+    </section>
+
+    <details class="panel api-docs">
+      <summary>🧩 API: <code>/generator</code></summary>
+      <p>Send a text prompt and an image <code>type</code> (one of the Art Style values above, identical to Perchance's dropdown). The response always contains exactly 4 images as base64 data URLs.</p>
+      <h3>POST (JSON)</h3>
+      <pre><code id="curlPost"></code></pre>
+      <h3>GET</h3>
+      <pre><code id="curlGet"></code></pre>
+      <h3>Allowed types</h3>
+      <pre><code id="curlTypes"></code></pre>
+      <h3>Response</h3>
+      <pre><code>{
+  "success": true,
+  "prompt": "…",
+  "type": "Cinematic",
+  "count": 4,
+  "images": [
+    { "index": 1, "mimeType": "image/jpeg", "extension": "jpg", "sizeBytes": 123456, "seed": 123, "dataUrl": "data:image/jpeg;base64,…" },
+    … 3 more …
+  ],
+  "timings": { "browserLaunchMs": 900, "pageReadyMs": 1500, "generationMs": 21000, "totalMs": 23400 }
+}</code></pre>
+    </details>
+  </main>
+
+  <footer class="site-footer">
+    Images are produced by <a href="https://perchance.org/ai-text-to-image-generator" target="_blank" rel="noopener">perchance.org</a>.
+    This app only automates its public generator page.
+  </footer>
+
+  <dialog id="lightbox" class="lightbox">
+    <form method="dialog"><button class="lightbox-close" aria-label="Close">✕</button></form>
+    <img id="lightboxImg" alt="" />
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

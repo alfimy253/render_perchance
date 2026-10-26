@@ -25,9 +25,9 @@ try {
   const live = await readLiveOptions(frame);
   const styles = live.artStyle.map((o) => o.label).filter(Boolean);
   if (styles.length < 5) throw new Error(`Only ${styles.length} art styles found – refusing to overwrite.`);
-  if (!live.numImages.some((o) => o.value.trim() === '4')) {
+  if (!live.numImages.some((o) => o.value.trim() === '2')) {
     console.warn(
-      '⚠️  Perchance no longer offers "4" in "How many?" – the generator will fail with IMAGE_COUNT_UNAVAILABLE.',
+      '⚠️  Perchance no longer offers "2" in "How many?" – the generator will fail with IMAGE_COUNT_UNAVAILABLE.',
     );
   }
   const defaultStyle = live.artStyle.find((o) => o.selected)?.label || styles[0];

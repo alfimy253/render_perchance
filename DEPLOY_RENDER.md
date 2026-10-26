@@ -17,7 +17,7 @@ Render's free web service has **0.1 CPU and 512 MB RAM** and spins down after 15
 - **Mocked image API:** the real perchance.org page, generator and image embeds, with only Perchance's image API answered locally. This exercises everything except Perchance's anti-bot check.
 - **Real Perchance:** no mocks, so Cloudflare Turnstile (Perchance's anti-bot check) runs inside the browser.
 
-| Render plan | Mocked image API (4 images) | Real Perchance (anti-bot check) |
+| Render plan | Mocked image API (2 images) | Real Perchance (anti-bot check) |
 |---|---|---|
 | **Free**: 0.1 CPU, 512 MB | ✅ about 58 s (73 s in the Docker image), peak 281–338 MiB | ❌ Turnstile **timed out** (error `110600`) after 256 s. Memory peaked at 503 of 512 MiB. |
 | **0.5c-512mb** ($7/mo) | ✅ 9.4 s, peak 251 MiB | ❌ The browser **ran out of memory** after 50 s and the page crashed. |
@@ -92,7 +92,7 @@ The Docker image already sets `BROWSER_MODE=local`, `PLAYWRIGHT_BROWSERS_PATH=/m
 ### Free-plan limits worth knowing
 
 - 750 free instance hours per workspace per month. One free service running around the clock fits, and spun-down time doesn't count.
-- The Hobby workspace includes 5 GB of outbound bandwidth per month. A 4-image response is roughly 0.5–1.5 MB. Without a payment method, Render suspends free services for the rest of the month once the bandwidth is used up.
+- The Hobby workspace includes 5 GB of outbound bandwidth per month. A 2-image response is roughly 0.5–1.5 MB. Without a payment method, Render suspends free services for the rest of the month once the bandwidth is used up.
 - Render may restart a free service at any time. There is also no shell access, so `scripts/live-smoke.js` can't be run there.
 - Render may suspend a free service that generates an unusually high volume of outbound traffic.
 
@@ -102,7 +102,7 @@ The Docker image already sets `BROWSER_MODE=local`, `PLAYWRIGHT_BROWSERS_PATH=/m
 
 1. `https://<service>.onrender.com/api/health` should show `"runtime":"render"` and `"browserMode":"local"` (or `"remote"`).
 2. Open the site, enter the API key in 🔑, and generate.
-3. On paid instances you can test Perchance access from Render's own IP: open **Shell** and run `node scripts/live-smoke.js`. Exit code `0` means 4 images, `2` means blocked by the anti-bot check, `1` means another error.
+3. On paid instances you can test Perchance access from Render's own IP: open **Shell** and run `node scripts/live-smoke.js`. Exit code `0` means 2 images, `2` means blocked by the anti-bot check, `1` means another error.
 
 | Result | Meaning | Fix |
 |---|---|---|

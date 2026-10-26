@@ -124,7 +124,7 @@ Without openssl you can generate a key with `node -e "console.log(require('crypt
    head -c 200 result.json; echo
    ```
 
-   Output beginning `{"success":true, … "count":4` means it works. Leave out the `X-API-Key` line if you did not set `API_KEY`.
+   Output beginning `{"success":true, … "count":2` means it works. Leave out the `X-API-Key` line if you did not set `API_KEY`.
 
 Run these tests against the **production** domain. Preview URLs are behind a Vercel login by default, so curl gets Vercel's login page or a `401` instead of the app.
 
@@ -141,7 +141,7 @@ Run these tests against the **production** domain. Preview URLs are behind a Ver
 | A Vercel login page, or a `401` that is not JSON | You opened a protected preview URL. | Use the production domain, or change Settings → Deployment Protection. |
 | `401 UNAUTHORIZED` (JSON) | `API_KEY` is set and the key is missing or wrong. | Enter it in the 🔑 field, or send the `X-API-Key` header. |
 | `429 BUSY` | Another generation is already running on the same instance. | Retry when it finishes. |
-| `504 GENERATION_TIMEOUT` | Perchance did not deliver 4 images within 240 s (`GENERATION_TIMEOUT_MS`). | Retry later. On Pro, raise `maxDuration` and `GENERATION_TIMEOUT_MS`. |
+| `504 GENERATION_TIMEOUT` | Perchance did not deliver 2 images within 240 s (`GENERATION_TIMEOUT_MS`). | Retry later. On Pro, raise `maxDuration` and `GENERATION_TIMEOUT_MS`. |
 | Vercel's own `504 FUNCTION_INVOCATION_TIMEOUT` page | The function reached `maxDuration`. | Keep `GENERATION_TIMEOUT_MS` at least 30–60 s below `maxDuration`. |
 | `500 BROWSER_LAUNCH_FAILED` | Chromium did not start, or the remote browser could not be reached. | Check the logs, confirm that `/api/health` shows Node `v22`, and check `BROWSER_WS_ENDPOINT` if it is set. |
 | The logs show the function was killed or ran out of memory | It exceeded the 2 GB memory limit, most likely during repeated anti-bot failures. | Keep `MAX_CONCURRENT_JOBS=1`, lower `ANTI_BOT_GRACE_MS`, or use *Performance* (4 GB) on Pro. |

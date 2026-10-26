@@ -8,7 +8,7 @@ import { AppError } from '../utils/errors.js';
 import { PERCHANCE } from './selectors.js';
 
 /** Product rule: every generation returns exactly this many images – no more, no less. */
-export const IMAGE_COUNT = 4;
+export const IMAGE_COUNT = 2;
 
 const POLL_MS = 750;
 const EMBED_SCAN_MS = 2_000;
@@ -53,7 +53,7 @@ export async function generatePerchanceImages({ prompt, type, signal, hooks = {}
     timings.pageReadyMs = Date.now() - navStart;
     log('generator.ready', { ms: timings.pageReadyMs });
 
-    // 2) Prompt + Art Style + "How many?" = 4.
+    // 2) Prompt + Art Style + "How many?" = 2.
     const form = await fillForm(frame, { prompt, type });
     log('form.filled', form);
 
@@ -63,7 +63,7 @@ export async function generatePerchanceImages({ prompt, type, signal, hooks = {}
     await clickGenerate(frame);
     log('generate.clicked');
 
-    // 4) Wait until all 4 images are delivered.
+    // 4) Wait until all 2 images are delivered.
     const images = await waitForImages({ page, frame, net, crash, signal, deadline, clickedAt, log });
     timings.generationMs = Date.now() - clickedAt;
     timings.totalMs = Date.now() - startedAt;
@@ -337,7 +337,7 @@ async function waitForImages({ page, frame, net, crash, signal, deadline, clicke
 
   const images = await collectImages(page, frame);
   if (images.length < IMAGE_COUNT) {
-    throw new AppError('GENERATION_TIMEOUT', 'Perchance reported finished images but fewer than 4 could be read.', {
+    throw new AppError('GENERATION_TIMEOUT', 'Perchance reported finished images but fewer than 2 could be read.', {
       details: { received: images.length, expected: IMAGE_COUNT, partialImages: images },
     });
   }

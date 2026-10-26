@@ -4,7 +4,7 @@
  *
  *   npm run smoke:live -- "a lighthouse in a storm" "Cinematic"
  *
- * Exit codes: 0 = 4 images generated · 2 = blocked by Perchance's anti-bot / Cloudflare
+ * Exit codes: 0 = 2 images generated · 2 = blocked by Perchance's anti-bot / Cloudflare
  * (environment/IP problem, not a code problem) · 1 = any other failure.
  */
 import { mkdir, writeFile } from 'node:fs/promises';

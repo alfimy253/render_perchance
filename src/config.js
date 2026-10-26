@@ -72,7 +72,7 @@ export const config = Object.freeze({
   /** Make the browser's client hints look like regular Chrome (removes the "HeadlessChrome" brand). */
   spoofClientHints: toBool(env.SPOOF_CLIENT_HINTS, true),
 
-  /** Hard budget for one /generator call (browser launch → 4 images). Keep below Vercel maxDuration (300s). */
+  /** Hard budget for one /generator call (browser launch → 2 images). Keep below Vercel maxDuration (300s). */
   generationTimeoutMs: toInt(env.GENERATION_TIMEOUT_MS, 240_000, { min: 30_000, max: 1_700_000 }),
   /** How long Perchance's page/generator UI may take to become ready. */
   pageLoadTimeoutMs: toInt(env.PAGE_LOAD_TIMEOUT_MS, 45_000, { min: 5_000 }),

@@ -12,10 +12,10 @@ A **stateless Node.js/Express app**, deployed either as a single Vercel Function
 1. Starts a fresh headless Chromium via **Playwright** (`playwright-core`).
 2. Opens `https://perchance.org/ai-text-to-image-generator`.
 3. Types the user's prompt into Perchance's **📝 Description** box.
-4. Selects the requested **🎨 Art Style** (the "type"), sets **🔢 How many? = 4** and clicks **✨ generate**.
-5. Collects the 4 finished images as base64 data URLs and returns them as JSON.
+4. Selects the requested **🎨 Art Style** (the "type"), sets **🔢 How many? = 2** and clicks **✨ generate**.
+5. Collects the 2 finished images as base64 data URLs and returns them as JSON.
 
-A small vanilla-JS frontend (`public/`) copies Perchance's Art Style dropdown, takes a prompt and shows the 4 results.
+A small vanilla-JS frontend (`public/`) copies Perchance's Art Style dropdown, takes a prompt and shows the 2 results.
 
 ---
 
@@ -23,7 +23,7 @@ A small vanilla-JS frontend (`public/`) copies Perchance's Art Style dropdown, t
 
 | # | Rule | Where it is enforced |
 |---|------|----------------------|
-| R1 | **Exactly 4 images per generation.** The API never accepts a count. Perchance's "How many?" is forced to `4`. Fewer than 4 means failure (`GENERATION_TIMEOUT`, partial images attached). | `IMAGE_COUNT` in `src/perchance/generator.js`, `waitForImages()`, `collectImages()` |
+| R1 | **Exactly 2 images per generation.** The API never accepts a count. Perchance's "How many?" is forced to `2`. Fewer than 2 means failure (`GENERATION_TIMEOUT`, partial images attached). | `IMAGE_COUNT` in `src/perchance/generator.js`, `waitForImages()`, `collectImages()` |
 | R2 | **`type` must be one of Perchance's own Art Style dropdown values, verbatim** (including Unicode-bold labels such as `𝗡𝗼 𝘀𝘁𝘆𝗹𝗲`). Lenient input (`"no style"`, `"cinematic"`) is mapped to the canonical label; anything else gets HTTP 400. | `src/perchance/art-styles.js` (generated), `src/utils/validate.js` |
 | R3 | **The frontend dropdown is a copy of Perchance's dropdown.** It is served from the same list via `GET /api/types`, never hard-coded in HTML. | `public/app.js → loadTypes()` |
 | R4 | **Images come from Perchance through UI automation only.** Playwright types, selects and clicks like a user. Server code never calls Perchance's private image API directly. | `src/perchance/generator.js` |
@@ -59,9 +59,9 @@ Browser (public/index.html + app.js)            any HTTP client (curl, other ser
    └─ iframe https://<hash>.perchance.org/ai-text-to-image-generator   ("generator frame")
         ├─ textarea[data-name="description"]   ← prompt
         ├─ select[data-name="artStyle"]        ← type
-        ├─ select[data-name="numImages"]       ← "4"
+        ├─ select[data-name="numImages"]       ← "2"
         ├─ button#generateButtonEl             ← click
-        └─ 4 × iframe https://image-generation.perchance.org/embed#{…}   ("embeds")
+        └─ 2 × iframe https://image-generation.perchance.org/embed#{…}   ("embeds")
               Turnstile → /api/verifyUser → POST /api/generate → download image
               → <img id="resultImgEl" src="data:image/…">
               → parent.postMessage({type:"finished", dataUrl, seedUsed, id})
@@ -80,7 +80,7 @@ Static files in `public/**` are served by Vercel's CDN. Every other path goes to
 | `src/config.js` | All environment variables, parsed once with clamped defaults. |
 | `src/perchance/selectors.js` | **Single place for every Perchance URL, selector and marker.** Edit only this file when Perchance changes its markup. |
 | `src/perchance/art-styles.js` | **Generated** list of the Art Style labels plus the default. Do not edit by hand; run `npm run sync:types`. |
-| `src/perchance/generator.js` | The Playwright automation: open the page → find the generator frame → fill the form → install the result collector → click generate → wait for and collect 4 images. Also exports `openGenerator`, `readLiveOptions` and `parseDataUrl`. |
+| `src/perchance/generator.js` | The Playwright automation: open the page → find the generator frame → fill the form → install the result collector → click generate → wait for and collect 2 images. Also exports `openGenerator`, `readLiveOptions` and `parseDataUrl`. |
 | `src/browser/launch.js` | Browser strategy (local/serverless/remote) and Chromium flags (merged into one `--disable-features`, plus `CHROMIUM_EXTRA_ARGS`). One persistent context per request in a unique `/tmp` profile, cleanup of stale profiles, close with a timeout. `setAppHandlesShutdownSignals()` turns off Playwright's SIGINT/SIGTERM browser-killing for the graceful-shutdown server. |
 | `src/browser/fingerprint.js` | Builds a regular-Chrome User-Agent and UA client-hint metadata, and applies them through CDP (`Network.setUserAgentOverride`). |
 | `src/utils/validate.js` | Input parsing: prompt rules, `type` / `artStyle` / `style` aliases, and NFKC/case-insensitive matching to the canonical label. |
@@ -114,21 +114,21 @@ Static files in `public/**` are served by Vercel's CDN. Every other path goes to
    3. `page.goto(perchanceUrl, domcontentloaded)`, then poll `page.frames()` for the generator frame (URL `^https://<sub>.perchance.org/ai-text-to-image-generator`) until `artStyle` has more than 1 option and `numImages`, `description` and `#generateButtonEl` exist. A Cloudflare interstitial title ("Just a moment…") that never clears gives `CLOUDFLARE_CHALLENGE`.
    4. **Fill the form.**
       - `locator.fill(prompt)`, then verify with `inputValue()`.
-      - In-page `applySelections()`: choose the Art Style option by exact label, then by normalised label. Set the value and dispatch bubbling `input` and `change` events, then do the same for `numImages = "4"`.
-      - Errors: a missing label gives `TYPE_NOT_AVAILABLE`, a missing "4" gives `IMAGE_COUNT_UNAVAILABLE`.
+      - In-page `applySelections()`: choose the Art Style option by exact label, then by normalised label. Set the value and dispatch bubbling `input` and `change` events, then do the same for `numImages = "2"`.
+      - Errors: a missing label gives `TYPE_NOT_AVAILABLE`, a missing "2" gives `IMAGE_COUNT_UNAVAILABLE`.
    5. **Install the result collector.** It is a `message` listener in the generator frame that stores every `{type:"finished", dataUrl}` posted by an embed, de-duplicated by embed id.
    6. **Click generate.** Use Playwright's click, falling back to `element.click()` in the page.
    7. **`waitForImages()`.** Poll every 750 ms:
       - Read the collector count.
       - Every 2 s, scan the embeds' text and `#resultImgEl`.
       - Track the image API's network activity (embed status codes, `/api/generate` calls, `turnstileClientFail` codes).
-      - Stop with success at 4 images.
+      - Stop with success at 2 images.
       - Fail fast with `ANTI_BOT_VERIFICATION_FAILED` if "Anti-bot verification failed" persists for `ANTI_BOT_GRACE_MS` (45 s) while no `/api/generate` call was ever made.
       - Fail fast with `CLOUDFLARE_CHALLENGE` if every embed got a Cloudflare 403.
       - Fail with `GENERATION_TIMEOUT` (with partial images) at the deadline.
-   8. **`collectImages()`.** Merge collector results with the `#resultImgEl` fallback, de-duplicate by content hash, cap at 4. Return `{index, mimeType, extension, sizeBytes, seed, dataUrl}`.
+   8. **`collectImages()`.** Merge collector results with the `#resultImgEl` fallback, de-duplicate by content hash, cap at 2. Return `{index, mimeType, extension, sizeBytes, seed, dataUrl}`.
    9. `finally`: close the context (10 s timeout) and delete the profile dir.
-5. **Respond.** `200 { success, requestId, prompt, type, count: 4, images, settings, timings, browserMode, source }` with `Cache-Control: no-store`.
+5. **Respond.** `200 { success, requestId, prompt, type, count: 2, images, settings, timings, browserMode, source }` with `Cache-Control: no-store`.
 
 Typical timings:
 - Locally: browser 0.1–0.4 s, page ready about 0.6 s, generation 6–60 s depending on Perchance's queue.
@@ -144,7 +144,7 @@ Headless Chromium sends `HeadlessChrome` in **both** the `User-Agent` header and
 Fix, verified on 2026-10-15:
 - `launchPersistentContext({ userAgent })` sets a regular Chrome UA string. Playwright applies it to every target, including out-of-process iframes.
 - `applyClientHints()` sets `Network.setUserAgentOverride` with full `userAgentMetadata` (brands `Google Chrome`, `Chromium`, `Not.A/Brand`; platform Linux) on the page.
-- Measured: before the fix, all embeds returned 403. After it, all 4 return 200.
+- Measured: before the fix, all embeds returned 403. After it, all 2 return 200.
 
 ### 5.2 Why site isolation is disabled
 Perchance's generator frame lives on a different origin (`<hash>.perchance.org`) under a COOP/COEP page, so Chromium normally runs it out-of-process, where the page-level metadata override does not reach. The fix needs **both** switches:
@@ -178,9 +178,9 @@ Without the second, the generator frame still reports `HeadlessChrome` brands. T
 
 | Method & path | Purpose |
 |---------------|---------|
-| `POST /generator` (alias `POST /api/generator`) | JSON body `{ "prompt": string, "type"?: string }`. Returns 4 images. |
+| `POST /generator` (alias `POST /api/generator`) | JSON body `{ "prompt": string, "type"?: string }`. Returns 2 images. |
 | `GET /generator?prompt=…&type=…` | Same, via query string. |
-| `GET /api/types` (alias `/types`) | `{ source, syncedAt, default, imageCount: 4, authRequired, mode, count, types: [...] }` |
+| `GET /api/types` (alias `/types`) | `{ source, syncedAt, default, imageCount: 2, authRequired, mode, count, types: [...] }` |
 | `GET /api/health` | `{ ok, mode, runtime, browserMode, node, busySlots, maxConcurrentJobs, time }` |
 | `OPTIONS *` | CORS preflight, returns 204 |
 
@@ -191,15 +191,15 @@ Without the second, the generator frame still reports `HeadlessChrome` brands. T
   "requestId": "…",
   "prompt": "a red fox in a snowy forest",
   "type": "Cinematic",
-  "count": 4,
+  "count": 2,
   "images": [{ "index": 1, "mimeType": "image/jpeg", "extension": "jpg", "sizeBytes": 123456, "seed": 42, "dataUrl": "data:image/jpeg;base64,…" }],
-  "settings": { "artStyle": "Cinematic", "numImages": 4, "shape": "Square" },
+  "settings": { "artStyle": "Cinematic", "numImages": 2, "shape": "Square" },
   "timings": { "browserLaunchMs": 1400, "pageReadyMs": 850, "generationMs": 21000, "totalMs": 23300 },
   "browserMode": "serverless",
   "source": "https://perchance.org/ai-text-to-image-generator"
 }
 ```
-(`images` always has exactly 4 entries; one is shown here.)
+(`images` always has exactly 2 entries; one is shown here.)
 
 **Error codes:**
 
@@ -218,16 +218,16 @@ Without the second, the generator frame still reports `HeadlessChrome` brands. T
 | `ANTI_BOT_VERIFICATION_FAILED` | 502 | Perchance's Turnstile kept failing (`details.turnstileErrorCode`, e.g. `600010`) |
 | `GENERATOR_UI_NOT_FOUND` | 502 | Page or markup changed, or the form could not be filled |
 | `TYPE_NOT_AVAILABLE` | 502 | Style missing from the **live** dropdown (run `sync:types`) |
-| `IMAGE_COUNT_UNAVAILABLE` | 502 | Perchance removed "4" from "How many?" |
-| `GENERATION_TIMEOUT` | 504 | Fewer than 4 images before the deadline (`details.partialImages`) |
+| `IMAGE_COUNT_UNAVAILABLE` | 502 | Perchance removed "2" from "How many?" |
+| `GENERATION_TIMEOUT` | 504 | Fewer than 2 images before the deadline (`details.partialImages`) |
 
-Response size: 4 JPEG/WebP images of 768×768 are typically 0.5–1.5 MB as base64, under Vercel's **4.5 MB** response limit.
+Response size: 2 JPEG/WebP images of 768×768 are typically 0.5–1.5 MB as base64, under Vercel's **4.5 MB** response limit.
 
 ---
 
 ## 7. Frontend (`public/`)
-- Mirrors Perchance's controls: **📝 Description**, **🎨 Art Style** (filled from `/api/types`, option value = label = Perchance text), **🔢 How many?** fixed to 4 (disabled), and **✨ generate**.
-- Shows a loading state (spinner, elapsed timer, 4 shimmer placeholders) and then a 2×2 grid with a lightbox, per-image download, "Download all" and seed/size info.
+- Mirrors Perchance's controls: **📝 Description**, **🎨 Art Style** (filled from `/api/types`, option value = label = Perchance text), **🔢 How many?** fixed to 2 (disabled), and **✨ generate**.
+- Shows a loading state (spinner, elapsed timer, 2 shimmer placeholders) and then a grid with a lightbox, per-image download, "Download all" and seed/size info.
 - Errors show `code`, `message` and `hint`; partial images are shown when present.
 - Remembers only UI preferences (last prompt, style, API key) in `localStorage`. The server stays stateless.
 - Shows the 🔑 API key field when `/api/types` reports `authRequired`, and also after any `401 UNAUTHORIZED`. The second case covers a browser that still has a cached `/api/types` (5 min) from before `API_KEY` was set. The key is sent as `X-API-Key`.
@@ -301,7 +301,7 @@ Response size: 4 JPEG/WebP images of 768×768 are typically 0.5–1.5 MB as base
 
   | Plan | Mocked image API | Real Perchance (anti-bot check runs) |
   |------|------------------|--------------------------------------|
-  | `free` (0.1 CPU / 512 MB) | 4 images in about 58 s, peak 281–338 MiB | Turnstile timed out (`110600`) after 256 s, memory at 503/512 MiB |
+  | `free` (0.1 CPU / 512 MB) | 2 images in about 58 s, peak 281–338 MiB | Turnstile timed out (`110600`) after 256 s, memory at 503/512 MiB |
   | `0.5c-512mb` | 9.4 s, 251 MiB | Browser OOM-killed after 50 s (page crash, HTTP 500) |
   | `1c-2g` | 7.5 s, 275 MiB | Check completed (verdict `600010` for the test IP) in 67 s, peak 1.13 GB |
 
@@ -315,14 +315,14 @@ Response size: 4 JPEG/WebP images of 768×768 are typically 0.5–1.5 MB as base
 | Command | What it proves | Needs network / browser |
 |---------|----------------|-------------------------|
 | `npm test` | 36 unit and HTTP contract tests: validation, type mapping, semaphore, flag merging (including `CHROMIUM_EXTRA_ARGS`), UA builder, error mapping, every route, API key protection (generator stubbed) | No / no |
-| `npm run test:mock-e2e` | The **whole pipeline** against the real perchance.org page, generator iframe and embed JavaScript; only `image-generation.perchance.org/api/*` is mocked. It checks: prompt reaches Perchance, chosen style changes Perchance's final prompt, exactly 4 `/api/generate` calls, 4 distinct images, HTTP `/generator` 200/400/405 | Yes / yes |
-| `npm run smoke:live` | Real generation with no mocks. Exit code 0 means 4 images; 2 means blocked by anti-bot or Cloudflare (environment/IP); 1 means another failure | Yes / yes |
+| `npm run test:mock-e2e` | The **whole pipeline** against the real perchance.org page, generator iframe and embed JavaScript; only `image-generation.perchance.org/api/*` is mocked. It checks: prompt reaches Perchance, chosen style changes Perchance's final prompt, exactly 2 `/api/generate` calls, 2 distinct images, HTTP `/generator` 200/400/405 | Yes / yes |
+| `npm run smoke:live` | Real generation with no mocks. Exit code 0 means 2 images; 2 means blocked by anti-bot or Cloudflare (environment/IP); 1 means another failure | Yes / yes |
 | `npm run sync:types` | Live dropdown is readable; refreshes `art-styles.js` | Yes / yes |
 
 Verified on 2026-10-15:
 - `npm test` 29/29 and mock E2E 10/10.
 - Mock flow passes with local Chromium and with the **@sparticuz Vercel binary**.
-- The **traced Vercel bundle** (`.vercel/output/functions/index.func`, run with `VERCEL=1`) returned 4 images.
+- The **traced Vercel bundle** (`.vercel/output/functions/index.func`, run with `VERCEL=1`) returned 2 images.
 - Example final prompts Perchance built:
   - *Cinematic*: "…golden hour, cinematic shot, dynamic lighting, 75mm, Technicolor, Panavision, cinemascope…"
   - *Painted Anime*: "…art in the style of atey ghailan, painterly anime style at pixiv…"
@@ -333,7 +333,7 @@ Verified on 2026-10-16 (Render support):
 - `vercel build` is unchanged: one `index.func` (`nodejs22.x`, `maxDuration` 300, 75 MB). The traced bundle loads with `VERCEL=1`.
 - The Docker image was built with Podman and run with `--memory=512m --cpus=0.1`:
   - `/api/health` reports `"runtime":"render"`, and requests run as the non-root user with `tini` as PID 1.
-  - Demo mode returned 4 images in 73 s (peak 338 MiB).
+  - Demo mode returned 2 images in 73 s (peak 338 MiB).
 - Graceful shutdown and the fail-fast browser-death check behave as described in §9.2 and §5.4.
 
 Verified on 2026-10-16 (API key):
@@ -381,5 +381,5 @@ Verified on 2026-10-16 (API key):
 - Perchance specifics go in `selectors.js`, and generated data in `art-styles.js`.
 - In-page code goes through `evaluateSafe()`. Every wait honours the deadline and the `AbortSignal`.
 - New errors are added to `ERROR_CATALOG`, with a `hint` when the user can act on it.
-- `IMAGE_COUNT` stays `4` (rule R1). Don't add a count parameter.
+- `IMAGE_COUNT` stays `2` (rule R1). Don't add a count parameter.
 - Run `npm test` and `npm run test:mock-e2e` before every deploy.

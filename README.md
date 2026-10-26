@@ -4,10 +4,10 @@ A **stateless Node.js / Express** web app and API. It drives the
 [Perchance AI Text-to-Image generator](https://perchance.org/ai-text-to-image-generator) with **Playwright**:
 - types your prompt;
 - selects the image **type** (Perchance's own "🎨 Art Style" values);
-- returns **exactly 4 images**.
+- returns **exactly 2 images**.
 
-- **Frontend:** prompt box, a copy of Perchance's Art Style dropdown (79 styles), "How many?" locked to 4, a results grid, a lightbox and downloads.
-- **API:** `POST /generator` (or `GET`) with `{ prompt, type }` returns 4 base64 images.
+- **Frontend:** prompt box, a copy of Perchance's Art Style dropdown (79 styles), "How many?" locked to 2, a results grid, a lightbox and downloads.
+- **API:** `POST /generator` (or `GET`) with `{ prompt, type }` returns 2 base64 images.
 - **Deploys to Vercel with zero config:** Express in `src/index.js`, with Chromium from `@sparticuz/chromium`.
 - **Or to Render (or any Docker host):** `Dockerfile` + `render.yaml`. It runs as a long-running server with Playwright's Chromium and shuts down gracefully.
 
@@ -68,17 +68,17 @@ curl 'https://<your-app>.vercel.app/generator?prompt=a%20lighthouse%20in%20a%20s
 {
   "success": true,
   "type": "Cinematic",
-  "count": 4,
+  "count": 2,
   "images": [
     { "index": 1, "mimeType": "image/jpeg", "extension": "jpg", "sizeBytes": 123456, "seed": 42, "dataUrl": "data:image/jpeg;base64,…" }
   ],
   "timings": { "totalMs": 23300 }
 }
 ```
-`images` always contains 4 entries. Errors look like `{ "success": false, "error": { "code", "message", "hint" } }`. The codes are listed in `system_rule.md` §6.
+`images` always contains 2 entries. Errors look like `{ "success": false, "error": { "code", "message", "hint" } }`. The codes are listed in `system_rule.md` §6.
 
 ### Other routes
-- `GET /api/types`: the Art Style list (`types`), the `default` and `imageCount: 4`.
+- `GET /api/types`: the Art Style list (`types`), the `default` and `imageCount: 2`.
 - `GET /api/health`: liveness and runtime info.
 
 ## Scripts
@@ -115,7 +115,7 @@ src/
   config.js                environment configuration
   http/configure-app.js    routes, middleware, error handling
   perchance/
-    generator.js           Playwright automation (4 images)
+    generator.js           Playwright automation (2 images)
     selectors.js           every Perchance selector/URL in one place
     art-styles.js          generated copy of Perchance's Art Style dropdown
   browser/

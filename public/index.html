@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="color-scheme" content="dark light" />
   <title>AI Image Generator · Perchance × Playwright</title>
-  <meta name="description" content="Type a prompt, pick a Perchance art style and get 4 AI images. Powered by Playwright automating perchance.org." />
+  <meta name="description" content="Type a prompt, pick a Perchance art style and get 2 AI images. Powered by Playwright automating perchance.org." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%8C%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
@@ -17,7 +17,7 @@
 
   <header class="site-header">
     <h1><span aria-hidden="true">🌌</span> AI Image Generator <span aria-hidden="true">🪄</span></h1>
-    <p class="tagline">Perchance's text-to-image generator, automated with Playwright. Every run returns <strong>4 images</strong>.</p>
+    <p class="tagline">Perchance's text-to-image generator, automated with Playwright. Every run returns <strong>2 images</strong>.</p>
   </header>
 
   <main>
@@ -41,8 +41,8 @@
         </div>
         <div class="field compact">
           <label for="count">🔢 How many?</label>
-          <select id="count" name="count" disabled title="This app always generates exactly 4 images">
-            <option selected>4</option>
+          <select id="count" name="count" disabled title="This app always generates exactly 2 images">
+            <option selected>2</option>
           </select>
         </div>
         <div id="apiKeyField" class="field compact" hidden>
@@ -82,7 +82,7 @@
 
     <details class="panel api-docs">
       <summary>🧩 API: <code>/generator</code></summary>
-      <p>Send a text prompt and an image <code>type</code> (one of the Art Style values above, identical to Perchance's dropdown). The response always contains exactly 4 images as base64 data URLs.</p>
+      <p>Send a text prompt and an image <code>type</code> (one of the Art Style values above, identical to Perchance's dropdown). The response always contains exactly 2 images as base64 data URLs.</p>
       <h3>POST (JSON)</h3>
       <pre><code id="curlPost"></code></pre>
       <h3>GET</h3>
@@ -94,10 +94,10 @@
   "success": true,
   "prompt": "…",
   "type": "Cinematic",
-  "count": 4,
+  "count": 2,
   "images": [
     { "index": 1, "mimeType": "image/jpeg", "extension": "jpg", "sizeBytes": 123456, "seed": 123, "dataUrl": "data:image/jpeg;base64,…" },
-    … 3 more …
+    … 1 more …
   ],
   "timings": { "browserLaunchMs": 900, "pageReadyMs": 1500, "generationMs": 21000, "totalMs": 23400 }
 }</code></pre>

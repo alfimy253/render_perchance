@@ -10,7 +10,7 @@
  *   /api/downloadTemporaryImage       → the image bytes (SVG placeholder showing the final prompt)
  *
  * This exercises 100% of our Playwright automation (frame discovery, prompt entry, Art Style +
- * "How many?" selection, generate click, collecting 4 results) without Perchance's anti-bot check.
+ * "How many?" selection, generate click, collecting 2 results) without Perchance's anti-bot check.
  */
 import { createHash, randomBytes } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';

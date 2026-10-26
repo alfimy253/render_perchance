@@ -44,11 +44,11 @@ export const ERROR_CATALOG = Object.freeze({
   },
   IMAGE_COUNT_UNAVAILABLE: {
     status: 502,
-    message: 'Perchance no longer offers "4" in its "How many?" dropdown.',
+    message: 'Perchance no longer offers "2" in its "How many?" dropdown.',
   },
   GENERATION_TIMEOUT: {
     status: 504,
-    message: 'Perchance did not deliver 4 images before the time budget ran out.',
+    message: 'Perchance did not deliver 2 images before the time budget ran out.',
     hint: 'Perchance may be busy. Retry, or raise GENERATION_TIMEOUT_MS (keep it below the Vercel maxDuration).',
   },
 });

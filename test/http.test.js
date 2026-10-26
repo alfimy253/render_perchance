@@ -23,7 +23,7 @@ async function fakeGenerate({ prompt, type }) {
   if (prompt === 'please crash') throw new Error('unexpected');
   return {
     type,
-    images: [1, 2, 3, 4].map((index) => ({
+    images: [1, 2].map((index) => ({
       index,
       mimeType: 'image/png',
       extension: 'png',
@@ -31,7 +31,7 @@ async function fakeGenerate({ prompt, type }) {
       seed: index,
       dataUrl: PIXEL,
     })),
-    settings: { artStyle: type, numImages: 4, shape: 'Square' },
+    settings: { artStyle: type, numImages: 2, shape: 'Square' },
     timings: { totalMs: 5 },
     browserMode: 'stub',
   };
@@ -61,7 +61,7 @@ describe('GET /api/types', () => {
     assert.equal(res.status, 200);
     const data = await res.json();
     assert.deepEqual(data.types, ART_STYLES);
-    assert.equal(data.imageCount, 4);
+    assert.equal(data.imageCount, 2);
     assert.equal(data.default, 'Painted Anime');
     assert.equal(data.authRequired, false);
   });
@@ -77,19 +77,19 @@ describe('GET /api/health', () => {
 });
 
 describe('/generator', () => {
-  it('POST JSON → 4 images', async () => {
+  it('POST JSON → 2 images', async () => {
     const res = await post('/generator', { prompt: 'a cat', type: 'cinematic' });
     assert.equal(res.status, 200);
     assert.ok(res.headers.get('x-request-id'));
     const data = await res.json();
     assert.equal(data.success, true);
     assert.equal(data.type, 'Cinematic');
-    assert.equal(data.count, 4);
-    assert.equal(data.images.length, 4);
+    assert.equal(data.count, 2);
+    assert.equal(data.images.length, 2);
     assert.deepEqual(calls.at(-1), { prompt: 'a cat', type: 'Cinematic' });
   });
 
-  it('GET query string → 4 images', async () => {
+  it('GET query string → 2 images', async () => {
     const res = await fetch(
       `${base}/generator?prompt=${encodeURIComponent('a dog')}&type=${encodeURIComponent('no style')}`,
     );

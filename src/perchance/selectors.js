@@ -9,9 +9,9 @@
  *        ├─ textarea[data-name="description"]               ← prompt
  *        ├─ select[data-name="artStyle"]                    ← "🎨 Art Style" (= our "type")
  *        ├─ select[data-name="shape"]                       ← Square / Portrait / Landscape (left at default)
- *        ├─ select[data-name="numImages"]                   ← "🔢 How many?" → we always pick "4"
+ *        ├─ select[data-name="numImages"]                   ← "🔢 How many?" → we always pick "2"
  *        ├─ button#generateButtonEl                         ← "✨ generate"
- *        └─ 4 × iframe https://image-generation.perchance.org/embed#{…}   ← one "embed" per image
+ *        └─ 2 × iframe https://image-generation.perchance.org/embed#{…}   ← one "embed" per image
  *              ├─ runs Cloudflare Turnstile → /api/verifyUser → /api/generate → downloads the image
  *              ├─ renders <img id="resultImgEl" src="data:image/…;base64,…">
  *              └─ window.parent.postMessage({ type: "finished", dataUrl, seedUsed, id }, "*")

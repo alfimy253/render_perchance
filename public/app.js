@@ -3,7 +3,7 @@
 (() => {
   'use strict';
 
-  const IMAGE_COUNT = 4;
+  const IMAGE_COUNT = 2;
   const STORE = { prompt: 'pig.prompt', type: 'pig.type', key: 'pig.apiKey' };
 
   const $ = (id) => document.getElementById(id);

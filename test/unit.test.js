@@ -23,8 +23,8 @@ describe('art styles (copied from Perchance)', () => {
     assert.ok(ART_STYLES.includes('Cute 3D Icon 𝗦𝗲𝘁'));
   });
 
-  it('always generates exactly 4 images', () => {
-    assert.equal(IMAGE_COUNT, 4);
+  it('always generates exactly 2 images', () => {
+    assert.equal(IMAGE_COUNT, 2);
   });
 });
 

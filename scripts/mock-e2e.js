@@ -3,7 +3,7 @@
  * End-to-end test of the full pipeline with Perchance's IMAGE API mocked:
  *
  *   real perchance.org page → real generator iframe → real image-embed iframes (their JS runs)
- *   → our Playwright automation → 4 images → Express /generator JSON
+ *   → our Playwright automation → 2 images → Express /generator JSON
  *
  * Only https://image-generation.perchance.org/api/* is answered locally (see lib/mock-perchance-backend.js),
  * because Perchance's Cloudflare Turnstile rejects data-center IPs such as CI runners.
@@ -42,7 +42,7 @@ async function step(name, fn) {
 
 const log = (event, data) => process.stdout.write(`    · ${event}${data ? ` ${JSON.stringify(data)}` : ''}\n`);
 
-function assertFourImages(images) {
+function assertTwoImages(images) {
   assert.equal(images.length, IMAGE_COUNT, `expected exactly ${IMAGE_COUNT} images`);
   images.forEach((img, i) => {
     assert.equal(img.index, i + 1);
@@ -59,13 +59,13 @@ await mkdir(OUT_DIR, { recursive: true });
 // ───────────────────────── A) Automation layer ─────────────────────────
 const bodiesByType = {};
 for (const type of ['Cinematic', 'Painted Anime']) {
-  await step(`generatePerchanceImages() → 4 images for type "${type}"`, async () => {
+  await step(`generatePerchanceImages() → 2 images for type "${type}"`, async () => {
     const mock = createMockPerchanceBackend();
     const res = await generatePerchanceImages({ prompt: PROMPT, type, hooks: mock, log });
-    assertFourImages(res.images);
+    assertTwoImages(res.images);
     assert.equal(res.type, type, 'Perchance dropdown must show the requested style');
-    assert.equal(res.settings.numImages, IMAGE_COUNT, '"How many?" must be 4');
-    assert.equal(mock.generateBodies.length, IMAGE_COUNT, 'Perchance must call /api/generate exactly 4 times');
+    assert.equal(res.settings.numImages, IMAGE_COUNT, '"How many?" must be 2');
+    assert.equal(mock.generateBodies.length, IMAGE_COUNT, 'Perchance must call /api/generate exactly 2 times');
     for (const body of mock.generateBodies) {
       assert.ok(String(body.prompt).includes('red fox'), 'the user prompt must reach Perchance');
       assert.equal(body.resolution, '768x768', 'Shape stays at Perchance default (Square)');
@@ -109,7 +109,7 @@ await step('GET /api/types returns the Perchance dropdown values', async () => {
   assert.equal(res.status, 200);
   const data = await res.json();
   assert.deepEqual(data.types, ART_STYLES);
-  assert.equal(data.imageCount, 4);
+  assert.equal(data.imageCount, 2);
   assert.equal(data.default, 'Painted Anime');
   log('types', { count: data.count, first: data.types.slice(0, 3) });
 });
@@ -133,15 +133,15 @@ await step('PUT /generator → 405', async () => {
   assert.equal(res.status, 405);
 });
 
-await step('POST /generator { prompt, type: "Watercolor" } → 200 with exactly 4 images', async () => {
+await step('POST /generator { prompt, type: "Watercolor" } → 200 with exactly 2 images', async () => {
   const res = await postJson('/generator', { prompt: PROMPT, type: 'Watercolor' });
   const text = await res.text();
   assert.equal(res.status, 200, text.slice(0, 500));
   const data = JSON.parse(text);
   assert.equal(data.success, true);
   assert.equal(data.type, 'Watercolor');
-  assert.equal(data.count, 4);
-  assertFourImages(data.images);
+  assert.equal(data.count, 2);
+  assertTwoImages(data.images);
   log('response', { bytes: text.length, timings: data.timings, browserMode: data.browserMode });
   for (const img of data.images) {
     const { base64 } = parseDataUrl(img.dataUrl);
@@ -149,14 +149,14 @@ await step('POST /generator { prompt, type: "Watercolor" } → 200 with exactly 
   }
 });
 
-await step('GET /generator?type=no style → canonical "𝗡𝗼 𝘀𝘁𝘆𝗹𝗲" + 4 images', async () => {
+await step('GET /generator?type=no style → canonical "𝗡𝗼 𝘀𝘁𝘆𝗹𝗲" + 2 images', async () => {
   const res = await fetch(
     `${base}/generator?prompt=${encodeURIComponent('a lighthouse in a storm')}&type=${encodeURIComponent('no style')}`,
   );
   const data = await res.json();
   assert.equal(res.status, 200, JSON.stringify(data).slice(0, 400));
   assert.equal(data.type, '𝗡𝗼 𝘀𝘁𝘆𝗹𝗲');
-  assertFourImages(data.images);
+  assertTwoImages(data.images);
 });
 
 await step('GET / serves the frontend', async () => {

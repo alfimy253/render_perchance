@@ -21,7 +21,7 @@ async function fakeGenerate({ type }) {
   generateCalls += 1;
   return {
     type,
-    images: [1, 2, 3, 4].map((index) => ({
+    images: [1, 2].map((index) => ({
       index,
       mimeType: 'image/png',
       extension: 'png',
@@ -29,7 +29,7 @@ async function fakeGenerate({ type }) {
       seed: index,
       dataUrl: PIXEL,
     })),
-    settings: { artStyle: type, numImages: 4, shape: 'Square' },
+    settings: { artStyle: type, numImages: 2, shape: 'Square' },
     timings: { totalMs: 5 },
     browserMode: 'stub',
   };
@@ -98,7 +98,7 @@ describe('API_KEY protection', () => {
       assert.equal(res.status, 200, JSON.stringify({ headers, query }));
       const data = await res.json();
       assert.equal(data.success, true);
-      assert.equal(data.count, 4);
+      assert.equal(data.count, 2);
     }
   });
 

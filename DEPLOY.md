@@ -61,6 +61,40 @@ Other settings auto from `package.json`: Node 22, maxDuration 300s (Hobby max), 
 
 No `openssl`? Use node command above. Change needs Redeploy.
 
+---
+
+## Remote Browser — Explained Like You're 5
+
+**Problem:** Perchance blocks Vercel/Render data-center IPs with `502 ANTI_BOT_VERIFICATION_FAILED` (Turnstile 600010 or 110600). Also free plans have too little RAM/CPU.
+
+**What Remote Browser means:**
+Think of it like this:
+- **Normal:** Your app runs Chrome *on the same computer* as the app (Vercel function or Render server). That computer is in a data-center → Perchance says "robot!" → blocked.
+- **Remote:** Your app does NOT run Chrome. It *calls* Chrome running *somewhere else* via a WebSocket URL `wss://...` . That somewhere else has a home/residential IP → Perchance says "human!" → allowed.
+
+Your Vercel/Render app becomes tiny: it only runs Express + Playwright client (almost no RAM). The heavy Chrome runs at the provider.
+
+**When to use what:**
+- `PROXY_SERVER` = keep Chrome on Vercel/Render, but internet goes through proxy. Good if you have proxy.
+- `BROWSER_WS_ENDPOINT` = move Chrome itself elsewhere. Good if free plan (saves RAM/CPU) or proxy doesn't work. If you use this, DON'T set `PROXY_SERVER` — set proxy at provider instead.
+
+**How to set it:**
+1. Get a WebSocket URL from provider:
+   - **Browserless.io:** `wss://production-sfo.browserless.io?token=YOUR_TOKEN`
+   - **Browserbase:** `wss://connect.browserbase.com?apiKey=YOUR_KEY`
+   - **Local PC with residential IP:** Run `chrome --remote-debugging-port=9222 --headless` then expose via `ngrok`/`cloudflare tunnel` → `wss://your-tunnel/wss`
+2. In Vercel/Render env vars set: `BROWSER_WS_ENDPOINT=wss://...` (and optionally `BROWSER_MODE=remote` — auto if this var exists).
+3. Keep `SPOOF_CLIENT_HINTS=true` unless provider says they handle it.
+4. Redeploy. Check `GET /api/health` → should show `"browserMode":"remote"` not `serverless/local`.
+
+Code: `src/browser/launch.js → openRemoteSession()` does `chromium.connectOverCDP(BROWSER_WS_ENDPOINT)` → `browser.newContext()` → reuses if provider blocks → closes both context+ browser after request.
+
+**Costs:**
+- Browserless free ~30 min/mo, paid $10-$50/mo. Browserbase similar. Local PC = free but must stay on.
+- Still needs 1 Chrome per request (≈0.6 GB at provider, but not on your server).
+
+**Test:** After setting, generate → should get 2 images instead of 502. Logs show `browser.ready mode:remote`.
+
 All other vars have defaults (see `.env.example`).
 
 ---

@@ -49,10 +49,29 @@ Docker image already sets `BROWSER_MODE=local`, `PLAYWRIGHT_BROWSERS_PATH=/ms-pl
 |---|---|
 | `API_KEY` | Blueprint creates it. Protects `/generator`. |
 | `PROXY_SERVER` (+ user/pass) | If `502 ANTI_BOT... 600010` — IP rejected. Use HTTP proxy. |
-| `BROWSER_WS_ENDPOINT` | To make free plan work — browser at remote provider (Browserless etc). |
+| `BROWSER_WS_ENDPOINT` | To make free plan work — browser at remote provider (Browserless etc). See Remote Browser below. |
 | `QUEUE_TIMEOUT_MS` | Default 60s — wait before 429 BUSY. |
 | `GENERATION_TIMEOUT_MS` | Default 240s — no 300s limit on Render (can raise, HTTP can take 100 min). |
 | `SHUTDOWN_TIMEOUT_MS` | Default 280s — wait for running jobs on SIGTERM (keep <300). |
+
+---
+
+## Remote Browser — Explained Like You're 5
+
+**Same problem as Vercel:** Render free 0.1 CPU/512MB = timeout/OOM, and Render data-center IP = blocked (600010). Remote fixes both.
+
+- **Normal (local):** Chrome runs *on Render* → needs 1c/2g + residential IP → expensive or blocked.
+- **Remote:** Chrome runs *elsewhere* (home PC or cloud browser) → Render only runs Express (tiny, fits free). WebSocket `wss://` connects Playwright to remote Chrome.
+
+**Use remote if:** You want to stay on free, or Render IP is blocked and proxy alone doesn't help.
+
+**Setup:**
+1. Get `wss://` URL from Browserless / Browserbase / your own tunneled Chrome (`chrome --remote-debugging-port=9222` + ngrok).
+2. Set `BROWSER_WS_ENDPOINT=wss://...` in Render Environment → Deploy.
+3. Provider does proxy — don't also set `PROXY_SERVER`.
+4. Check `/api/health` → `browserMode: remote`. Code in `src/browser/launch.js` does `connectOverCDP` + newContext (or reuse provider's context).
+
+Without remote, free plan can only do fake images: `node scripts/demo-mock-server.js`.
 
 ---
 
